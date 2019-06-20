@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>下载</title>
+  <style>
+    #app {
+      width: 500px;
+      margin: 50px auto 0;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .link {
+      padding: 5px 10px;
+      cursor: pointer;
+      border: 1px solid #eee;
+      font-size: 12px;
+      color: #666;
+      transition: all .15s ease;
+      border-radius: 3px;
+    }
+    
+    .link:active {
+      background: #efefef;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <van-cell-group>
+      <van-field
+        center
+        v-model='url'
+        label="下载地址:"
+        placeholder="输入下载地址"
+      >
+        <van-button @click='create' slot="button" size="small" type="primary">创建任务</van-button>
+      </van-field>
+    </van-cell-group>
+
+    <div class="row" v-for='(item, i) in fileList' :key='i'>
+      <div class="cell">{{item.basename}}</div>
+      <div class="cell">
+        <a class="link" :href='item.url'>下载</a>
+      </div>
+    </div>
+  </div>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.0/lib/index.css">
+
+  <!-- 引入组件 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vant@2.0/lib/vant.min.js"></script>
+
+  <script>
+    var Vue = window.Vue;
+    var vant = window.vant;
+    Vue.use(vant);
+
+    const app = new Vue({
+      el: '#app',
+      data: {
+        url: '',
+        fileList: [],
+      },
+      mounted() {
+        this.getFileList();
+      },
+      methods: {
+        async getFileList() {
+          try {
+            const res = await fetch('/api/download/list', {
+              method: 'GET',
+            });
+
+            const { data } = await res.json();
+            this.fileList = data;
+          } catch (err) { 
+            throw err;
+          }
+        },
+        async create() {
+          if (this.url === '') {
+            this.$toast.fail('地址不能为空!');
+            return;
+          }
+
+          try {
+            const res = await fetch('/api/download/create', {
+              method: 'POST',
+              body: JSON.stringify({
+                url: this.url,
+              }),
+              headers: {
+                'content-type': 'application/json'
+              },
+            });
+            const data = await res.json();
+            if (data.error_code === 0) {
+              this.$toast.success('创建成功!');
+              this.url = '';
+            }
+          } catch (err) {
+            throw err;
+          }
+        }
+      },
+    })
+  </script>
+</body>
+</html>

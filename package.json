@@ -1,0 +1,27 @@
+{
+  "name": "file-transfer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon ./index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@koa/router": "^8.0.0",
+    "download": "^7.1.0",
+    "fs-extra": "^8.0.1",
+    "klaw": "^3.0.0",
+    "klaw-sync": "^6.0.0",
+    "koa": "^2.7.0",
+    "koa-body": "^4.1.0",
+    "koa-ejs": "^4.2.0",
+    "koa-static": "^5.0.0",
+    "moment": "^2.24.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.1"
+  }
+}
