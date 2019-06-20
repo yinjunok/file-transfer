@@ -5,5 +5,5 @@ RUN mkdir -p /file-transfer \
 COPY package.json index.js public/index.html /file-transfer/
 RUN cd /file-transfer \
     && npm install
-EXPOSE [3000]
+EXPOSE 3000
 CMD ["node", "/file-transfer/index.js"]
