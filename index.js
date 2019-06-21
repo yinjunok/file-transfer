@@ -61,7 +61,7 @@ setTimeout(cleanDownload, threeDayMs);
 router.get('/api/download/list', (ctx, next) => {
   const paths = klawSync(SAVE_DIR, { nodir: true, });
   paths.forEach(p => {
-    const re = /(download)\\+.+$/;
+    const re = /(download)(\\|\/)+.+$/;
     const relativePath = p.path.match(re);
     p.url = URL + relativePath[0];
     const replaceRe = /\\/g;
