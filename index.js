@@ -7,7 +7,6 @@ const os = require('os');
 const Router = require('@koa/router');
 const koaBody = require('koa-body');
 const download = require('download');
-// const render = require('koa-ejs');
 const moment = require('moment');
 
 const SAVE_DIR = path.resolve(__dirname, './download');
@@ -16,14 +15,6 @@ const URL = 'https://file.bald.icu/';
 
 const app = new Koa();
 const router = new Router();
-
-// render(app, {
-//   root: path.join(__dirname, 'public'),
-//   layout: false,
-//   viewExt: 'html',
-//   cache: false,
-//   debug: true
-// });
 
 // 初始化
 ;(async () => {
@@ -51,12 +42,8 @@ function cleanDownload() {
   });
 }
 
-const threeDayMs = 3 * 24 * 60 * 60 * 1000;
+const threeDayMs = 1 * 24 * 60 * 60 * 1000;
 setTimeout(cleanDownload, threeDayMs);
-
-// router.get('/', async (ctx, next) => {
-//   return await ctx.render('index');
-// });
 
 router.get('/api/download/list', (ctx, next) => {
   const paths = klawSync(SAVE_DIR, { nodir: true, });
@@ -75,6 +62,15 @@ router.get('/api/download/list', (ctx, next) => {
   };
 });
 
+const downloadIng = [];
+router.get('/api/download/downloading', async (ctx, next) => {
+  return ctx.body = {
+    message: '',
+    data: downloadIng,
+    error_code: 0,
+  }
+});
+
 router.post('/api/download/create', async (ctx, next) => {
   const body = ctx.request.body;
   const stream = download(body.url);
@@ -87,10 +83,19 @@ router.post('/api/download/create', async (ctx, next) => {
     try {
       await fse.ensureDir(path.dirname(saveFile));
       await fse.move(tmpFile, saveFile);
+      const i = downloadIng.findIndex((n) => n.id === saveFile);
+      downloadIng.splice(i, 1);
     } catch (err) {
       throw err;
     }
   });
+
+  downloadIng.push({
+    url: body.url,
+    id: saveFile,
+    createdAt: moment().format('YYYY-MM-DD HH:mm:ss'),
+  });
+
   ctx.body = {
     message: '任务创建成功!',
     error_code: 0,

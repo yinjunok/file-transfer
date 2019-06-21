@@ -11,13 +11,13 @@
       margin: 50px auto 0;
     }
 
-    .row {
+    /* .row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px 0;
       border-bottom: 1px solid #eee;
-    }
+    } */
 
     .link {
       padding: 5px 10px;
@@ -31,6 +31,36 @@
     
     .link:active {
       background: #efefef;
+    }
+
+    .row-header {
+      padding: 10px;
+      margin-top: 10px;
+      background: #efefef;
+    }
+
+    .row {
+      padding: 10px;
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .url {
+      box-sizing: border-box;
+      display: block;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-right: 10px;
+      color: #666;
+      line-height: 3em;
+    }
+
+    h2 {
+      font-size: 18px;
     }
   </style>
 </head>
@@ -46,14 +76,29 @@
         <van-button @click='create' slot="button" size="small" type="primary">创建任务</van-button>
       </van-field>
     </van-cell-group>
+    <h2>下载完成</h2>
+    <van-row class="row-header">
+      <van-col span="20">文件名</van-col>
+      <van-col span="4">下载</van-col>
+    </van-row>
+    <van-row class="row" v-for='item in fileList' :key='item.path'>
+      <van-col span="20">{{item.basename}}</van-col>
+      <van-col span="4"><a class="link" target="_blank" :href='item.url'>下载</a></van-col>
+    </van-row>
 
-    <div class="row" v-for='(item, i) in fileList' :key='i'>
-      <div class="cell">{{item.basename}}</div>
-      <div class="cell">
-        <a class="link" :href='item.url'>下载</a>
-      </div>
-    </div>
+    <h2>下载中</h2>
+    <van-row class="row-header">
+      <van-col span="20">下载链接</van-col>
+      <van-col span="4">创建时间</van-col>
+    </van-row>
+    <van-row class="row" v-for='item in downloadingList' :key='item.id'>
+      <van-col span="20">
+        <a :href='item.url' target="_blank" class="url">{{item.url}}</a>
+      </van-col>
+      <van-col span="4">{{item.createdAt}}</van-col>
+    </van-row>
   </div>
+    
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.0/lib/index.css">
 
   <!-- 引入组件 -->
@@ -69,10 +114,42 @@
       el: '#app',
       data: {
         url: '',
-        fileList: [],
+        fileList: [
+        // {
+        //     "path": "C:\\Users\\yinju\\Desktop\\file-transfer\\download\\1561044855614\\test.mp4",
+        //     "stats": {
+        //         "dev": 1149161674,
+        //         "mode": 33206,
+        //         "nlink": 1,
+        //         "uid": 0,
+        //         "gid": 0,
+        //         "rdev": 0,
+        //         "ino": 1125899907393818,
+        //         "size": 3688410,
+        //         "atimeMs": 1561044862370.361,
+        //         "mtimeMs": 1561044862370.361,
+        //         "ctimeMs": 1561044862378.3618,
+        //         "birthtimeMs": 1561044855631.8699,
+        //         "atime": "2019-06-20T15:34:22.370Z",
+        //         "mtime": "2019-06-20T15:34:22.370Z",
+        //         "ctime": "2019-06-20T15:34:22.378Z",
+        //         "birthtime": "2019-06-20T15:34:15.632Z"
+        //     },
+        //     "url": "https://file.bald.icu/download/1561044855614/test.mp4",
+        //     "basename": "test.mp4"
+        // }
+        ],
+        downloadingList: [
+          // {
+          //   "url": "https://file.bald.icu/download/1561089518761/android-studio-ide-183.5522156-windows.exe",
+          //   "id": "C:\\Users\\yinju\\Desktop\\file-transfer\\download\\1561090695611\\android-studio-ide-183.5522156-windows.exe",
+          //   "createdAt": "2019-06-21 12:18:15"
+          // }
+        ],
       },
       mounted() {
         this.getFileList();
+        this.getDownloadingList();
       },
       methods: {
         async getFileList() {
@@ -84,6 +161,17 @@
             const { data } = await res.json();
             this.fileList = data;
           } catch (err) { 
+            throw err;
+          }
+        },
+        async getDownloadingList() {
+          try {
+            const res = await fetch('/api/download/downloading', {
+              method: 'GET'
+            });
+            const { data } = await res.json();
+            this.downloadingList = data;
+          } catch (err) {
             throw err;
           }
         },
@@ -107,6 +195,7 @@
             if (data.error_code === 0) {
               this.$toast.success('创建成功!');
               this.url = '';
+              this.getDownloadingList();
             }
           } catch (err) {
             throw err;
