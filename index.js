@@ -38,7 +38,7 @@ function cleanDownload() {
   });
 
   needDel.forEach(f => {
-    fse.move(f.path);
+    fse.remove(f.path);
   });
 }
 
