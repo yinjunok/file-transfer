@@ -9,12 +9,26 @@ const koaBody = require('koa-body');
 const download = require('download');
 const moment = require('moment');
 
+const render = require('koa-ejs');
+
 const SAVE_DIR = path.resolve(__dirname, './download');
 const TMP_DIR = os.tmpdir();
 const URL = 'https://file.bald.icu/';
 
 const app = new Koa();
 const router = new Router();
+
+render(app, {
+  root: path.join(__dirname, 'public'),
+  layout: false,
+  viewExt: 'html',
+  cache: false,
+  debug: true
+});
+
+router.get('/', async (ctx, next) => {
+  return await ctx.render('index');
+})
 
 // 初始化
 ;(async () => {
@@ -47,6 +61,7 @@ setTimeout(cleanDownload, threeDayMs);
 
 router.get('/api/download/list', (ctx, next) => {
   const paths = klawSync(SAVE_DIR, { nodir: true, });
+  const now = moment();
   paths.forEach(p => {
     const re = /(download)(\\|\/)+.+$/;
     const relativePath = p.path.match(re);
@@ -54,6 +69,8 @@ router.get('/api/download/list', (ctx, next) => {
     const replaceRe = /\\/g;
     p.url = p.url.replace(replaceRe, '\/');
     p.basename = path.basename(p.path);
+    // 剩余时间
+    p.rest = 3 - now.diff(moment(p.stats.birthtime), 'days');
   });
   ctx.body = {
     error_code: 0,
@@ -71,7 +88,7 @@ router.get('/api/download/downloading', async (ctx, next) => {
   }
 });
 
-router.post('/api/download/create', async (ctx, next) => {
+router.post('/api/download/create', koaBody(), async (ctx, next) => {
   const body = ctx.request.body;
   const stream = download(body.url);
   const tmpFile = path.join(TMP_DIR, Date.now().toString(), path.basename(body.url));
@@ -103,8 +120,26 @@ router.post('/api/download/create', async (ctx, next) => {
   };
 });
 
+router.post(
+  '/api/upload/create',
+  koaBody({
+    multipart: true,
+    formidable: {
+      keepExtensions: true,
+    },
+  }),
+  async (ctx, next) => {
+    const files = ctx.request.files;
+    await fse.move(files.file.path, path.join(SAVE_DIR, Date.now().toString(), `${files.file.name.replace(/\s+/g, '-')}`))
+    ctx.body = {
+      message: '上传成功!',
+      error_code: 0,
+      data: null,
+    };
+  }
+)
+
 app
-  .use(koaBody())
   .use(router.routes())
   .use(router.allowedMethods())
 

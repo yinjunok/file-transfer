@@ -4,152 +4,99 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>下载</title>
+  <title>文件交换</title>
   <style>
+    body {
+      font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+    }
     #app {
-      width: 500px;
+      max-width: 980px;
       margin: 50px auto 0;
     }
+    a {
+      text-decoration: none;
+    }
+    h1 {
+      text-align: center;
+      margin: 0;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #d3dce6;
+    }
 
-    /* .row {
+    .el-dialog__body {
+      text-align: center;
+    }
+
+    .create-upload {
+      width: 500px;
+      margin: 0 auto;
+    }
+
+    .remote-task {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #eee;
-    } */
-
-    .link {
-      padding: 5px 10px;
-      cursor: pointer;
-      border: 1px solid #eee;
-      font-size: 12px;
-      color: #666;
-      transition: all .15s ease;
-      border-radius: 3px;
-    }
-    
-    .link:active {
-      background: #efefef;
-    }
-
-    .row-header {
-      padding: 10px;
-      margin-top: 10px;
-      background: #efefef;
-    }
-
-    .row {
-      padding: 10px;
-      border-top: 1px solid #eee;
-      border-bottom: 1px solid #eee;
-      font-size: 14px;
-      color: #666;
-    }
-
-    .url {
-      box-sizing: border-box;
-      display: block;
-      width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      padding-right: 10px;
-      color: #666;
-      line-height: 3em;
-    }
-
-    h2 {
-      font-size: 18px;
     }
   </style>
 </head>
 <body>
   <div id="app">
-    <van-cell-group>
-      <van-field
-        center
-        v-model='url'
-        label="下载地址:"
-        placeholder="输入下载地址"
-      >
-        <van-button @click='create' slot="button" size="small" type="primary">创建任务</van-button>
-      </van-field>
-    </van-cell-group>
-    <h2>下载完成</h2>
-    <van-row class="row-header">
-      <van-col span="20">文件名</van-col>
-      <van-col span="4">下载</van-col>
-    </van-row>
-    <van-row class="row" v-for='item in fileList' :key='item.path'>
-      <van-col span="20">{{item.basename}}</van-col>
-      <van-col span="4"><a class="link" target="_blank" :href='item.url'>下载</a></van-col>
-    </van-row>
-
-    <h2>下载中</h2>
-    <van-row class="row-header">
-      <van-col span="20">下载链接</van-col>
-      <van-col span="4">创建时间</van-col>
-    </van-row>
-    <van-row class="row" v-for='item in downloadingList' :key='item.id'>
-      <van-col span="20">
-        <a :href='item.url' target="_blank" class="url">{{item.url}}</a>
-      </van-col>
-      <van-col span="4">{{item.createdAt}}</van-col>
-    </van-row>
+   <el-container>
+      <el-header class="header">
+        <h1>文件交换</h1>
+      </el-header>
+      <el-container>
+      <el-aside style='width: 220px;'>
+      <el-menu default-active="0" @select='menuSelectHandle'>
+        <el-menu-item index="0">
+          <i class="el-icon-download"></i>
+          <span slot="title">下载完成</span>
+        </el-menu-item>
+        <el-menu-item index="1">
+          <i class="el-icon-upload"></i>
+          <span slot="title">创建任务</span>
+        </el-menu-item>
+        <el-menu-item index="2">
+          <i class="el-icon-takeaway-box"></i>
+          <span slot="title">正在下载</span>
+        </el-menu-item>
+      </el-menu>
+     </el-aside>
+     
+     <el-main>
+        <download-table v-if="menuSelect === '0'"></download-table>
+        <create-task v-if="menuSelect === '1'"></create-task>
+        <downloading v-if="menuSelect === '2'"></downloading>
+     </el-main>
+    </el-container>
+   </el-container>
   </div>
     
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.0/lib/index.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js" integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>
 
-  <!-- 引入组件 -->
-  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vant@2.0/lib/vant.min.js"></script>
-
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.9.2/lib/theme-chalk/index.css" integrity="sha256-qqPTRj4z/qJRF+PBy1LjBT/5buh0wF5DkVul7Jqyx/g=" crossorigin="anonymous">
+  <!-- 引入组件库 -->
+  <script src="https://cdn.jsdelivr.net/npm/element-ui@2.9.2/lib/index.js" integrity="sha256-FvMAO0zXcIDQrFztgrvKJjFtBimtzHAI2d0/LK6UAcQ=" crossorigin="anonymous"></script>
+  <!-- 生成二维码 -->
+  <script src="https://cdn.jsdelivr.net/npm/@chenfengyuan/vue-qrcode@1.0.0/dist/vue-qrcode.min.js" integrity="sha256-2yLoTSTwZcHAnL1WHpmt/yOCAn/cJfYfS83Ag7UlATM=" crossorigin="anonymous"></script>
+  
   <script>
-    var Vue = window.Vue;
-    var vant = window.vant;
-    Vue.use(vant);
+    Vue.component(VueQrcode.name, VueQrcode);
 
-    const app = new Vue({
-      el: '#app',
-      data: {
-        url: '',
-        fileList: [
-        // {
-        //     "path": "C:\\Users\\yinju\\Desktop\\file-transfer\\download\\1561044855614\\test.mp4",
-        //     "stats": {
-        //         "dev": 1149161674,
-        //         "mode": 33206,
-        //         "nlink": 1,
-        //         "uid": 0,
-        //         "gid": 0,
-        //         "rdev": 0,
-        //         "ino": 1125899907393818,
-        //         "size": 3688410,
-        //         "atimeMs": 1561044862370.361,
-        //         "mtimeMs": 1561044862370.361,
-        //         "ctimeMs": 1561044862378.3618,
-        //         "birthtimeMs": 1561044855631.8699,
-        //         "atime": "2019-06-20T15:34:22.370Z",
-        //         "mtime": "2019-06-20T15:34:22.370Z",
-        //         "ctime": "2019-06-20T15:34:22.378Z",
-        //         "birthtime": "2019-06-20T15:34:15.632Z"
-        //     },
-        //     "url": "https://file.bald.icu/download/1561044855614/test.mp4",
-        //     "basename": "test.mp4"
-        // }
-        ],
-        downloadingList: [
-          // {
-          //   "url": "https://file.bald.icu/download/1561089518761/android-studio-ide-183.5522156-windows.exe",
-          //   "id": "C:\\Users\\yinju\\Desktop\\file-transfer\\download\\1561090695611\\android-studio-ide-183.5522156-windows.exe",
-          //   "createdAt": "2019-06-21 12:18:15"
-          // }
-        ],
+    Vue.component('download-table', {
+      data: function () {
+        return {
+          fileList: [],
+          showQrCodeUrl: '',
+          qrCodeVisible: false,
+        }
       },
       mounted() {
         this.getFileList();
-        this.getDownloadingList();
       },
       methods: {
         async getFileList() {
@@ -164,20 +111,53 @@
             throw err;
           }
         },
-        async getDownloadingList() {
-          try {
-            const res = await fetch('/api/download/downloading', {
-              method: 'GET'
-            });
-            const { data } = await res.json();
-            this.downloadingList = data;
-          } catch (err) {
-            throw err;
-          }
+        showQrCode(url) {
+          this.showQrCodeUrl = url;
+          this.qrCodeVisible = true;
         },
+      },
+      template: `
+        <div>
+          <el-table
+            :data="fileList"
+            style="width: 100%">
+            <el-table-column
+              prop="basename"
+              label="文件名">
+            </el-table-column>
+            <el-table-column
+              prop="rest"
+              label="保留剩余时间">
+            </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scope">
+                <a :href='scope.row.url' target="_blank" class='el-button el-button--primary el-button--mini'>下载</a>
+                <el-button size='mini' @click='showQrCode(scope.row.url)'>二维码</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-dialog title="下载地址二维码" width='400px' :visible.sync="qrCodeVisible">
+            <qrcode :value="showQrCodeUrl" :options="{ width: 300 }"></qrcode>
+          </el-dialog>
+        </div>
+      `,
+    })
+  </script>
+
+  <script>
+    Vue.component('create-task', {
+      data() {
+        return {
+          url: '',
+        }
+      },
+      methods: {
         async create() {
           if (this.url === '') {
-            this.$toast.fail('地址不能为空!');
+            this.$message({
+              message: '地址不能为空!',
+              type: 'warning'
+            });
             return;
           }
 
@@ -193,14 +173,96 @@
             });
             const data = await res.json();
             if (data.error_code === 0) {
-              this.$toast.success('创建成功!');
+              this.$message({
+                message: '创建成功!',
+                type: 'success'
+              });
               this.url = '';
-              this.getDownloadingList();
             }
           } catch (err) {
             throw err;
           }
         }
+      },
+      template: `
+        <div>
+          <div class='remote-task'>
+            <el-input v-model="url" placeholder="请输入远程下载地址"></el-input>
+            <el-button type="primary" style='margin-left: 10px;' @click='create'>创建任务</el-button>
+          </div>
+          <el-divider></el-divider>
+          <el-upload
+            class="create-upload"
+            drag
+            action="/api/upload/create"
+            multiple>
+            <i class="el-icon-upload"></i>
+            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+          </el-upload>
+        </div>
+      `,
+    })
+  </script>
+
+  <script>
+    Vue.component('downloading', {
+      data() {
+        return {
+          downloadingList: [
+            //  {
+            //   "url": "https://file.bald.icu/download/1561089518761/android-studio-ide-183.5522156-windows.exe",
+            //   "id": "C:\\Users\\yinju\\Desktop\\file-transfer\\download\\1561090695611\\android-studio-ide-183.5522156-windows.exe",
+            //   "createdAt": "2019-06-21 12:18:15"
+            // }
+          ],
+        }
+      },
+      mounted() {
+        this.getDownloadingList();
+      },
+      methods: {
+        async getDownloadingList() {
+          try {
+            const res = await fetch('/api/download/downloading', {
+              method: 'GET'
+            });
+            const { data } = await res.json();
+            this.downloadingList = data;
+          } catch (err) {
+            throw err;
+          }
+        },
+      },
+      template: `
+        <el-table
+          :data="downloadingList"
+          style="width: 100%">
+          <el-table-column
+            prop="url"
+            label="下载地址">
+          </el-table-column>
+          <el-table-column
+            prop="createdAt"
+            label="创建时间">
+          </el-table-column>
+        </el-table>
+      `,
+    })
+  </script>
+
+  <script>
+    const app = new Vue({
+      el: '#app',
+      data: {
+        menuSelect: "0",
+      },
+      mounted() {
+        this.getDownloadingList();
+      },
+      methods: {
+        menuSelectHandle(i) {
+          this.menuSelect = i;
+        },
       },
     })
   </script>
