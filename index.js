@@ -49,13 +49,13 @@ function cleanDownload() {
     const diff = now.diff(moment(p.stats.birthtime), 'days');
     if (diff >= 3) return true;
     return false;
-  });
+  }); 
 
   needDel.forEach(f => {
-    fse.remove(f.path);
+    fse.remove(path.dirname(f.path));
   });
 }
-
+cleanDownload();
 const threeDayMs = 1 * 24 * 60 * 60 * 1000;
 setTimeout(cleanDownload, threeDayMs);
 
