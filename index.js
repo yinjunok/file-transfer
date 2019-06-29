@@ -56,8 +56,8 @@ function cleanDownload() {
   });
 }
 cleanDownload();
-const threeDayMs = 1 * 24 * 60 * 60 * 1000;
-setTimeout(cleanDownload, threeDayMs);
+const delayMs = 1 * 24 * 60 * 60 * 1000;
+setInterval(cleanDownload, delayMs);
 
 router.get('/api/download/list', (ctx, next) => {
   const paths = klawSync(SAVE_DIR, { nodir: true, });
